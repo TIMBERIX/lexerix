@@ -1,7 +1,9 @@
+import com.vanniktech.maven.publish.SonatypeHost
+
 plugins {
     kotlin("jvm") version "1.9.22"
-    application
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("signing")
+    id("com.vanniktech.maven.publish") version "0.28.0"
 }
 
 group = "toys.timberix"
@@ -34,21 +36,53 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
+
 kotlin {
     jvmToolchain(17)
-
 }
 
-tasks.jar {
-    manifest {
-        attributes["Main-Class"] = "toys.timberix.MainKt"
-    }
+signing {
+    sign(publishing.publications)
 }
 
-// Configure the shadowJar task
-tasks.shadowJar {
-    // Configure manifest settings if needed
-    manifest {
-        attributes["Main-Class"] = "com.example.MainClassName"
+mavenPublishing {
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+
+    signAllPublications()
+
+    coordinates(project.group.toString(), "lexerix", project.version.toString())
+
+    pom {
+        name.set("Lexerix")
+        description.set("Kotlin API using Jetbrains Exposed for accessing the Lexware Financial Office database.")
+        inceptionYear.set("2024")
+        val repo = "Timberix/lexerix"
+        url.set("https://github.com/$repo")
+        licenses {
+            license {
+                name.set("MIT")
+                url.set("https://github.com/$repo/blob/main/LICENSE")
+            }
+            license {
+                name.set("jConnect License Agreement")
+                url.set("https://github.com/$repo/blob/main/LICENSE_jconnect")
+            }
+        }
+        developers {
+            developer {
+                id.set("kberix")
+                name.set("kberix")
+                url.set("https://github.com/kberix")
+            }
+        }
+        scm {
+            url.set("https://github.com/$repo")
+            connection.set("scm:git:git://github.com/$repo.git")
+            developerConnection.set("scm:git:ssh://git@github.com/$repo.git")
+        }
+        issueManagement {
+            system.set("GitHub")
+            url.set("https://github.com/$repo/issues")
+        }
     }
 }

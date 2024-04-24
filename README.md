@@ -24,6 +24,24 @@ next to it (example: `abc123def456ghi7`).
 
 > ⚠️ The corresponding username is `U0`, **not** `Supervisor`!
 
+### Adding the library to your project
+
+[![Maven Central Version](https://img.shields.io/maven-central/v/toys.timberix/lexerix)](https://central.sonatype.com/artifact/toys.timberix/lexerix)
+
+#### Gradle
+```kotlin
+repositories {
+    // ...
+    mavenCentral()
+}
+dependencies {
+    // ...
+    // replace VERSION with the latest version
+    implementation("toys.timberix:lexerix:VERSION")
+}
+```
+For more implementation instructions,
+see the [Maven Central Page](https://central.sonatype.com/artifact/toys.timberix/lexerix).
 
 ## Usage
 

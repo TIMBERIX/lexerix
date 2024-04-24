@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package toys.timberix.toys.timberix.lexerix.api
 
 import com.sybase.jdbc4.jdbc.SybDriver
@@ -11,12 +13,8 @@ import java.sql.SQLException
 
 /**
  * This class is the main entry point for the Lexerix API.
- *
- * @param databaseFolder The folder where all Lexware databases are located.
  */
-class Lexerix(
-    private val databaseFolder: String = "C:\\ProgramData\\Lexware\\professional\\Datenbank",
-) {
+class Lexerix {
     private var _db: Database? = null
     private val db: Database get() {
         if (_db == null) throw RuntimeException("Database not connected")
@@ -29,6 +27,7 @@ class Lexerix(
      * If there is already a connection, it will be closed and a new one will be opened.
      *
      * @param company The company id/path, e.g. F1, F2, etc.
+     * @param databaseFolder The folder where all Lexware databases are located.
      */
     fun connect(
         company: String,
@@ -36,15 +35,27 @@ class Lexerix(
         user: String,
         password: String,
         port: Int = 2638,
+        databaseFolder: String = "C:\\ProgramData\\Lexware\\professional\\Datenbank",
     ) {
         val driver = SybDriver::class.qualifiedName!!
         Database.registerJdbcDriver("jdbc:sybase", driver, SQLServerDialect.dialectName)
 
         // Try to connect to company db
-        connectToCompany(company, ip, port, user, password)
+        connectToCompany(company, ip, port, user, password, databaseFolder)
     }
 
-    private fun startCompanyDatabase(name: String) {
+    fun connect(
+        config: LexerixConfig
+    ) = connect(
+        config.company,
+        config.ip,
+        config.user,
+        config.password,
+        config.port,
+        config.databaseFolder
+    )
+
+    private fun startCompanyDatabase(name: String, databaseFolder: String) {
         print("Starting company database '$name'... ")
         transaction {
             try {
@@ -71,7 +82,15 @@ class Lexerix(
      *   b. starts the company database                  |
      * 3. retries to connect to the company database  ---
      */
-    private fun connectToCompany(company: String, ip: String, port: Int, user: String, password: String, maybeStart: Boolean = true) {
+    private fun connectToCompany(
+        company: String,
+        ip: String,
+        port: Int,
+        user: String,
+        password: String,
+        databaseFolder: String,
+        maybeStart: Boolean = true
+    ) {
         fun dataSource(suffix: String = "") = HikariDataSource().apply {
             jdbcUrl = "jdbc:sybase:Tds:$ip:$port$suffix"
             username = user
@@ -107,9 +126,9 @@ class Lexerix(
                 // 3. retry to connect to company database
                 TransactionManager.closeAndUnregister(db)
                 _db = Database.connect(dataSource())
-                startCompanyDatabase(company)
+                startCompanyDatabase(company, databaseFolder)
 
-                connectToCompany(company, ip, port, user, password, maybeStart = false)
+                connectToCompany(company, ip, port, user, password, databaseFolder, maybeStart = false)
             }
             else {
                 println(e.sqlState)

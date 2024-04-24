@@ -1,13 +1,16 @@
+import com.github.jengelman.gradle.plugins.shadow.transformers.ServiceFileTransformer
 import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
     kotlin("jvm") version "1.9.22"
+    kotlin("plugin.serialization") version "1.9.22"
     id("signing")
     id("com.vanniktech.maven.publish") version "0.28.0"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "toys.timberix"
-version = "0.0.1"
+version = "0.0.2"
 
 repositories {
     mavenCentral()
@@ -16,21 +19,23 @@ repositories {
 
 val exposedVersion = "0.49.0"
 
+val shade: Configuration = configurations.maybeCreate("compileShaded")
+configurations.getByName("compileOnly").extendsFrom(shade)
 dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test")
 
-    implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
-    implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
-    implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
-
-    implementation("org.jetbrains.exposed:exposed-kotlin-datetime:$exposedVersion")
-    implementation("com.zaxxer:HikariCP:5.1.0")
-
     implementation("org.slf4j:slf4j-nop:2.0.13")
+    api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+
+    api("org.jetbrains.exposed:exposed-core:$exposedVersion")
+    api("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+    api("org.jetbrains.exposed:exposed-dao:$exposedVersion")
+    api("org.jetbrains.exposed:exposed-kotlin-datetime:$exposedVersion")
+    api("com.zaxxer:HikariCP:5.1.0")
 
     //implementation("net.sourceforge.jtds:jtds:1.3.1") // doesn't work :(
-    // jConnect Driver for Sybase
-    implementation(files("libs/jconn2.jar"))
+    // jConnect Driver for Sybase -- shade into jar
+    shade(files("libs/jconn2.jar"))
 }
 
 tasks.test {
@@ -43,6 +48,20 @@ kotlin {
 
 signing {
     sign(publishing.publications)
+}
+
+// Publish shadowJar with shaded jConnect driver
+val shadowJar = tasks.shadowJar.apply {
+    configure {
+        archiveClassifier.set("")
+        configurations = listOf(shade)
+        transformers.add(ServiceFileTransformer())
+    }
+}
+
+artifacts {
+    runtimeOnly(shadowJar)
+    archives(shadowJar)
 }
 
 mavenPublishing {

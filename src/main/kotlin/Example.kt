@@ -14,6 +14,11 @@ import toys.timberix.toys.timberix.lexerix.api.inventory_management.InventoryMan
 import toys.timberix.toys.timberix.lexerix.api.inventory_management.InventoryManagement.Customers.anschriftFirma
 import toys.timberix.toys.timberix.lexerix.api.inventory_management.InventoryManagement.Customers.anschriftName
 import toys.timberix.toys.timberix.lexerix.api.inventory_management.InventoryManagement.Customers.anschriftVorname
+import toys.timberix.toys.timberix.lexerix.api.inventory_management.InventoryManagement.Products.bezeichnung
+import toys.timberix.toys.timberix.lexerix.api.inventory_management.InventoryManagement.Products.created
+import toys.timberix.toys.timberix.lexerix.api.inventory_management.InventoryManagement.Products.createdUser
+import toys.timberix.toys.timberix.lexerix.api.inventory_management.InventoryManagement.Products.lastUpdated
+import toys.timberix.toys.timberix.lexerix.api.inventory_management.InventoryManagement.Products.preis
 import kotlin.time.Duration.Companion.seconds
 
 fun listAllCustomers() {
@@ -49,6 +54,15 @@ fun customQuery() {
     println("First accounting company description: '$companyType'")
 }
 
+fun listAllProducts() {
+    transaction {
+        InventoryManagement.Products.selectAll().forEach {
+            println("Product: ${it[bezeichnung]} (${it[preis]}) - created by ${it[createdUser]} at ${it[created]}")
+            println("   -> Last modified at ${it[lastUpdated]} (GMT)")
+        }
+    }
+}
+
 private fun main(): Unit = runBlocking {
     val lexerix = Lexerix()
 
@@ -59,6 +73,8 @@ private fun main(): Unit = runBlocking {
         System.getenv("LEXWARE_USER")!!,
         System.getenv("LEXWARE_PASSWORD")!!
     )
+
+    listAllProducts()
 
     listAllCustomers()
 

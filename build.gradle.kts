@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "toys.timberix"
-version = "0.0.2"
+version = "0.0.3"
 
 repositories {
     mavenCentral()
@@ -36,6 +36,7 @@ dependencies {
     //implementation("net.sourceforge.jtds:jtds:1.3.1") // doesn't work :(
     // jConnect Driver for Sybase -- shade into jar
     shade(files("libs/jconn2.jar"))
+    implementation(files("libs/jconn2.jar")) // for testing in current project
 }
 
 tasks.test {

@@ -2,14 +2,28 @@
 
 package toys.timberix.toys.timberix.lexerix.api.inventory_management
 
+import kotlinx.datetime.Clock
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.insertAndGetId
+import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.statements.InsertStatement
 
 object InventoryManagement {
     open class FK_Table(name: String, idColumn: String) : IntIdTable("FK_$name", idColumn)
+
+    // todo more generic implementation to also support accounting, etc.
+    open class DatedTable(name: String, idColumn: String) : FK_Table(name, idColumn) {
+        /** gmt timestamp of creation */
+        val created = timestamp("System_created").default(Clock.System.now()).nullable()
+        /** gmt timestamp of last update */
+        val lastUpdated = timestamp("System_updated").default(Clock.System.now())
+        /** user that created this value initially */
+        val createdUser = varchar("System_created_user", 255).default("LEXERIX")
+        /** user that last updated this value */
+        val updatedUser = varchar("System_updated_user", 255).default("LEXERIX")
+    }
 
     object Customers : FK_Table("Kunde", "SheetNr") {
         /**
@@ -53,4 +67,18 @@ object InventoryManagement {
     object Companies : FK_Table("Firma", "IID_Firma") {
         val bBrutto = bool("bBrutto")
     }
+
+    object Products : DatedTable("Artikel", "SheetNr") {
+        val artikelNr = integer("ArtikelNr")
+        val bezeichnung = varchar("Bezeichnung", 255)
+        val beschreibung = varchar("Beschreibung", 255).default("Product created by LEXERIX")
+        val gewicht = float("Gewicht")
+        val preis = float("Vk_preis")
+        val bestand = float("Menge_bestand")
+        val minBestand = float("Menge_minbestand")
+        /** Should this product be visible in the webshop? */
+        val webShop = bool("bStatus_WebShop")
+    }
+
+    object PriceMatrix : DatedTable("Preismatrix", "")
 }

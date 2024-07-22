@@ -6,7 +6,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.innerJoin
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import toys.timberix.toys.timberix.lexerix.api.Lexerix
@@ -57,8 +59,16 @@ fun customQuery() {
 fun listAllProducts() {
     transaction {
         InventoryManagement.Products.selectAll().forEach {
-            println("Product: ${it[bezeichnung]} (${it[preis]}) - created by ${it[createdUser]} at ${it[created]}")
+            println("Product: ${it[bezeichnung]} - created by ${it[createdUser]} at ${it[created]}")
             println("   -> Last modified at ${it[lastUpdated]} (GMT)")
+        }
+    }
+}
+
+fun listProductsWithPrices() {
+    transaction {
+        InventoryManagement.Products.withPrices().forEach {
+            println("Found product ${it[bezeichnung]} with price ${it[InventoryManagement.PriceMatrix.vkPreisEur]}")
         }
     }
 }
@@ -75,6 +85,7 @@ private fun main(): Unit = runBlocking {
     )
 
     listAllProducts()
+    listProductsWithPrices()
 
     listAllCustomers()
 

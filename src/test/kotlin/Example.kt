@@ -1,26 +1,20 @@
 @file:Suppress("ClassName")
 
-package toys.timberix
-
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.innerJoin
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import toys.timberix.toys.timberix.lexerix.api.Lexerix
-import toys.timberix.toys.timberix.lexerix.api.inventory_management.InventoryManagement
-import toys.timberix.toys.timberix.lexerix.api.inventory_management.InventoryManagement.Customers.anschriftFirma
-import toys.timberix.toys.timberix.lexerix.api.inventory_management.InventoryManagement.Customers.anschriftName
-import toys.timberix.toys.timberix.lexerix.api.inventory_management.InventoryManagement.Customers.anschriftVorname
-import toys.timberix.toys.timberix.lexerix.api.inventory_management.InventoryManagement.Products.bezeichnung
-import toys.timberix.toys.timberix.lexerix.api.inventory_management.InventoryManagement.Products.created
-import toys.timberix.toys.timberix.lexerix.api.inventory_management.InventoryManagement.Products.createdUser
-import toys.timberix.toys.timberix.lexerix.api.inventory_management.InventoryManagement.Products.lastUpdated
-import toys.timberix.toys.timberix.lexerix.api.inventory_management.InventoryManagement.Products.preis
+import toys.timberix.lexerix.api.inventory_management.InventoryManagement
+import toys.timberix.lexerix.api.inventory_management.InventoryManagement.Customers.anschriftFirma
+import toys.timberix.lexerix.api.inventory_management.InventoryManagement.Customers.anschriftName
+import toys.timberix.lexerix.api.inventory_management.InventoryManagement.Customers.anschriftVorname
+import toys.timberix.lexerix.api.inventory_management.InventoryManagement.Products.bezeichnung
+import toys.timberix.lexerix.api.inventory_management.InventoryManagement.Products.created
+import toys.timberix.lexerix.api.inventory_management.InventoryManagement.Products.createdUser
+import toys.timberix.lexerix.api.inventory_management.InventoryManagement.Products.lastUpdated
 import kotlin.time.Duration.Companion.seconds
 
 fun listAllCustomers() {
@@ -73,16 +67,21 @@ fun listProductsWithPrices() {
     }
 }
 
-private fun main(): Unit = runBlocking {
-    val lexerix = Lexerix()
+fun listOrdersWithProducts() {
+    transaction {
+        InventoryManagement.Orders.selectWithProducts().forEach { (id, contents) ->
+            println("Order $id:")
+            contents.forEach { product ->
+                println(" - ${product[InventoryManagement.OrderContents.count]} x ${product[bezeichnung]}")
+            }
+        }
+    }
+}
 
-    // This will potentially start the company database
-    lexerix.connect(
-        System.getenv("LEXWARE_COMPANY"),
-        System.getenv("LEXWARE_IP")!!,
-        System.getenv("LEXWARE_USER")!!,
-        System.getenv("LEXWARE_PASSWORD")!!
-    )
+private fun main(): Unit = runBlocking {
+    exampleSetup()
+
+    listOrdersWithProducts()
 
     listAllProducts()
     listProductsWithPrices()

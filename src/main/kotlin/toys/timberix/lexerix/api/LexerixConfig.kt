@@ -1,4 +1,4 @@
-package toys.timberix.toys.timberix.lexerix.api
+package toys.timberix.lexerix.api
 
 import kotlinx.serialization.Serializable
 

@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package toys.timberix.toys.timberix.lexerix.api
+package toys.timberix.lexerix.api
 
 import com.sybase.jdbc4.jdbc.SybDriver
 import com.zaxxer.hikari.HikariDataSource

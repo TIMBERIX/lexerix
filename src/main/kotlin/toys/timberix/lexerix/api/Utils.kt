@@ -1,5 +1,8 @@
 package toys.timberix.lexerix.api
 
-import kotlin.math.roundToInt
+import java.math.BigDecimal
+import java.math.MathContext
+import java.math.RoundingMode
 
-fun Float.roundToCurrency() = (this * 100).roundToInt() / 100f
+fun String.asCurrency() = BigDecimal(this, MathContext(2, RoundingMode.HALF_UP))
+fun Float.asCurrency(): BigDecimal = BigDecimal.valueOf(toDouble()).setScale(2, RoundingMode.HALF_UP)

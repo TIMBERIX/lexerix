@@ -8,7 +8,10 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 import org.jetbrains.exposed.sql.statements.InsertStatement
-import toys.timberix.lexerix.api.roundToCurrency
+import toys.timberix.lexerix.api.asCurrency
+import java.math.BigDecimal
+import java.math.MathContext
+import java.math.RoundingMode
 
 object InventoryManagement {
     object Customers : IntIdTable("FK_Kunde", "SheetNr") {
@@ -304,31 +307,32 @@ object InventoryManagement {
             it[productName] = product[Products.bezeichnung]
             it[productMatchcode] = product[Products.matchcode]
             it[productUnit] = product[Products.unit]
-            it[productWeight] = product[Products.gewicht].roundToCurrency()
+            it[productWeight] = BigDecimal(product[Products.gewicht].toString(), MathContext(3, RoundingMode.HALF_UP)).toFloat()
 
             it[this.count] = count
             it[priceFactor] = count
-            val netPrice = product[PriceMatrix.vkPreisNetto]
-            val taxPortion = 0.19f // todo check tax
+            val netPrice = product[PriceMatrix.vkPreisNetto].asCurrency()
+            val taxPortion = BigDecimal("0.19") // todo check tax
             val tax = netPrice * taxPortion
             val grossPrice = netPrice + tax
-            val totalNetPrice = netPrice * count
-            val totalGrossPrice = (grossPrice * (1f + taxPortion)).roundToCurrency()
-            it[netPricePerProduct] = netPrice
-            it[this.totalNetPrice] = totalNetPrice
-            it[this.totalGrossPrice] = totalGrossPrice
-            it[taxProz] = taxPortion
-            it[totalTax] = tax
+            val totalNetPrice = netPrice * BigDecimal(count)
+            val totalTax = totalNetPrice * taxPortion
+            val totalGrossPrice = totalNetPrice + totalTax
+            it[netPricePerProduct] = netPrice.toFloat()
+            it[this.totalNetPrice] = totalNetPrice.toFloat()
+            it[this.totalGrossPrice] = totalGrossPrice.toFloat()
+            it[taxProz] = taxPortion.toFloat()
+            it[this.totalTax] = totalTax.toFloat()
 
-            it[totalTaxAfterAufrab] = tax
-            it[totalNetPriceAfterAufrab] = totalNetPrice
-            it[totalGrossPriceAfterAufrab] = totalGrossPrice
+            it[totalTaxAfterAufrab] = totalTax.toFloat()
+            it[totalNetPriceAfterAufrab] = totalNetPrice.toFloat()
+            it[totalGrossPriceAfterAufrab] = totalGrossPrice.toFloat()
 
             it[productId] = product[Products.id].value
             it[productShortDesc] = product[Products.bezeichnung]
 
-            it[netProductCost] = netPrice
-            it[grossProductCost] = grossPrice
+            it[netProductCost] = netPrice.toFloat()
+            it[grossProductCost] = grossPrice.toFloat()
 
             it[weight] = product[Products.gewicht] * count
         }

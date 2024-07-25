@@ -8,10 +8,12 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 import org.jetbrains.exposed.sql.statements.InsertStatement
+import toys.timberix.lexerix.api.CURRENCY_EUR
 import toys.timberix.lexerix.api.asCurrency
 import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
+import kotlin.time.Duration.Companion.hours
 
 object InventoryManagement {
     object Customers : IntIdTable("FK_Kunde", "SheetNr") {
@@ -191,6 +193,31 @@ object InventoryManagement {
                 block(it)
             }
         }
+
+        /**
+         * Inserts an order with calculated prices and the given products as [OrderContents].
+         */
+        fun insertWithProducts(vararg products: OrderContentData, block: Orders.(InsertStatement<EntityID<Int>>) -> Unit): EntityID<Int> {
+            val orderId = insertUnique {
+                // Calculate price
+                val netPrice = products.sumOf { data ->
+                    data.netPrice()
+                }
+                val taxPortion = 0.19.toBigDecimal() // todo check tax
+                val tax = netPrice * taxPortion
+                val grossPrice = netPrice + tax
+
+                it[nettoHaupt] = netPrice.toFloat()
+                it[bruttoHaupt] = grossPrice.toFloat()
+                it[totalTax] = tax.toFloat()
+                it[totalGrossPrice] = grossPrice.toFloat()
+                it[abschlagForderung] = grossPrice.toFloat()
+
+                block(it)
+            }
+            OrderContents.insertFor(orderId.value.toString(), *products)
+            return orderId
+        }
     }
 
     context(Orders)
@@ -348,5 +375,7 @@ object InventoryManagement {
         val product: ResultRow,
         val count: Int,
         val note: String = ""
-    )
+    ) {
+        fun netPrice() = product[PriceMatrix.vkPreisNetto].asCurrency() * BigDecimal(count)
+    }
 }

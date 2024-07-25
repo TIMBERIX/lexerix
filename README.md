@@ -88,7 +88,8 @@ val companyType = transaction {
 println("First accounting company description: '$companyType'")
 ```
 
-See [Example.kt](src/main/kotlin/Example.kt) for more examples.
+See [Example.kt](src/test/kotlin/Example.kt)
+and [OrderExamples.kt](src/test/kotlin/OrderExamples.kt) for more examples.
 
 
 ## Database

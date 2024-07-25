@@ -62,7 +62,7 @@ fun listAllProducts() {
 fun listProductsWithPrices() {
     transaction {
         InventoryManagement.Products.withPrices().forEach {
-            println("Found product ${it[bezeichnung]} with price ${it[InventoryManagement.PriceMatrix.vkPreisEur]}")
+            println("Found product ${it[bezeichnung]} with price ${it[InventoryManagement.PriceMatrix.vkPreisNetto]}")
         }
     }
 }

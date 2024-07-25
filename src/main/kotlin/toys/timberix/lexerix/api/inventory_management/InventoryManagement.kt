@@ -8,6 +8,7 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 import org.jetbrains.exposed.sql.statements.InsertStatement
+import toys.timberix.lexerix.api.roundToCurrency
 
 object InventoryManagement {
     object Customers : IntIdTable("FK_Kunde", "SheetNr") {
@@ -15,6 +16,7 @@ object InventoryManagement {
          * Unique customer number. Must be unique.
          */
         val kundenNr = varchar("KundenNr", 20)
+
         /**
          * Short name/identifier for the customer. Should be unique.
          */
@@ -40,7 +42,7 @@ object InventoryManagement {
         fun insertUnique(block: Customers.(InsertStatement<EntityID<Int>>) -> Unit): EntityID<Int> {
             // Fetch the highest id
             val customers = selectAll()
-            val highestId = customers.maxOf { maxOf(it[id].value, it[kundenNr].toInt()) }
+            val highestId = customers.maxOf { maxOf(it[id].value, it[kundenNr].toIntOrNull() ?: 0) }
 
             // Insert new customer
             return insertAndGetId {
@@ -57,13 +59,17 @@ object InventoryManagement {
 
     object Products : DatedTable("FK_Artikel", "SheetNr") {
         val artikelNr = integer("ArtikelNr")
+        val matchcode = varchar("Matchcode", 35)
         val bezeichnung = varchar("Bezeichnung", 255)
         val beschreibung = varchar("Beschreibung", 255).default("Product created by LEXERIX")
         val gewicht = float("Gewicht")
+        val unit = varchar("Einheit", 20).default("Stück")
+
         /** no price? --- use [withPrices] */
         val preis = float("Vk_preis")
         val bestand = float("Menge_bestand")
         val minBestand = float("Menge_minbestand")
+
         /** Should this product be visible in the webshop? */
         val webShop = bool("bStatus_WebShop")
 
@@ -76,8 +82,9 @@ object InventoryManagement {
         val artikelNr = reference("ArtikelNr", Products.artikelNr)
         val mengeNr = integer("MengeNr")
         val preisGrpNr = integer("PreisGrpNr")
-        /** Selling price in € */
-        val vkPreisEur = float("Vk_preis_eur")
+
+        /** Net (!) selling price in € */
+        val vkPreisNetto = float("Vk_preis_eur")
     }
 
     object Orders : DatedTable("FK_Auftrag", "SheetNr") {
@@ -93,10 +100,13 @@ object InventoryManagement {
         val preisGrp = integer("Konditionen_PreisgrpNr").default(1)
         val rabatt = float("Konditionen_Rabatt").default(0f)
         val rabattProz = float("Konditionen_Rabatt_Proz").default(0f)
+
         /** 978 = € */
         val currency = integer("Konditionen_Waehrung")
+
         /** 4 = online */
         val zahlungsArt = integer("Konditionen_Zahlungsart").default(4)
+
         /** "Lieferung per Postversand" oder "Lieferung frei Haus" */
         val lieferArt = varchar("Konditionen_Lieferart", 200).default("Lieferung per Postversand")
 
@@ -124,10 +134,13 @@ object InventoryManagement {
         val bruttoHaupt = float("Summen_brutto_haupt")
         val nettoNeben = float("Summen_netto_neben").default(0f)
         val bruttoNeben = float("Summen_brutto_neben").default(0f)
+
         /** only USt */
         val totalTax = float("Summen_ust_gesamt")
-        /** total price with tax */
-        val totalPrice = float("Summen_gesamt")
+
+        /** total gross price with tax */
+        val totalGrossPrice = float("Summen_gesamt")
+
         // todo Abschlag blablabla?
         val abschlagForderung = float("Summen_abschlag_forderung") // the same as "Summen_gesamt"?
 
@@ -135,11 +148,14 @@ object InventoryManagement {
         val lagergebucht = integer("bStatus_lagergebucht").default(0)
         val gebucht = integer("bStatus_gebucht").default(0)
         val uebernommen = integer("bStatus_uebernommen").default(0)
+
         // what is "Status_gedruckt" and "Status_drucken"?!?
         val gedruckt = integer("bStatus_gedruckt").default(0)
         val exportiert = integer("bStatus_exportiert").default(0)
+
         /** was the order delivered? */
         val delivered = integer("bStatus_geliefert").default(0)
+
         /** was the order paid? */
         val paid = integer("bStatus_bezahlt").default(0)
         val weitergefuehrt = integer("bStatus_weitergefuehrt").default(0)
@@ -159,11 +175,11 @@ object InventoryManagement {
                 it[id]
             }
 
-        /** Inserts a customer with `id` and `KundenNr` that are not yet used. */
+        /** Inserts an order with `id` and `AuftragsNr` that are not yet used. */
         fun insertUnique(block: Orders.(InsertStatement<EntityID<Int>>) -> Unit): EntityID<Int> {
             // Fetch the highest id
             val orders = selectAll()
-            val highestId = orders.maxOf { it[id].value }
+            val highestId = orders.maxOf { maxOf(it[id].value, it[auftragsNr].toIntOrNull() ?: 0) }
 
             // Insert new customer
             return insertAndGetId {
@@ -175,7 +191,7 @@ object InventoryManagement {
     }
 
     context(Orders)
-    @Suppress("USELESS_ELVIS")
+    @Suppress("USELESS_ELVIS", "RemoveRedundantQualifierName")
     fun InsertStatement<EntityID<Int>>.applyCustomerData(customer: ResultRow) {
         val mapping = mapOf(
             Orders.anschriftAnrede to Customers.anschriftAnrede,
@@ -198,51 +214,135 @@ object InventoryManagement {
         }
     }
 
-    // todo helper function(s) for inserting order with specific products as contents
-    object OrderContents : DatedTable("FK_AuftragPos", "LNr") {
+    object OrderContents : Table("FK_AuftragPos") {
+        val lNr = integer("lNr")
         val auftragsNr = reference("AuftragsNr", Orders.auftragsNr)
         val auftragsKennung = integer("AuftragsKennung").default(1) // ?
+
         /** index of content in order, e.g. order 1 could have contents 1,2,3 and order 2 could have contents 1,2 */
         val lfdNumber = integer("LfdNr")
         val szPosNr = integer("szPosNr") // = lfdNumber (?)
         val posNumber = integer("PosNr") // 1 bigger than lfdNumber (?)
+
         /** additional text per content, e.g. "I want this (the apples) to be green" */
         val note = varchar("PosText", 5000).default("")
         val productNr = reference("ArtikelNr", Products.artikelNr)
+
         // "ErloesKonto" doesn't seem to matter
         val warengrpNr = integer("WarengrpNr").default(1)
+
         // product data (why is this duplicated?)
         val productName = varchar("Artikel_Bezeichnung", 100)
         val productMatchcode = varchar("Artikel_Matchcode", 35)
         val productUnit = varchar("Artikel_Einheit", 20).default("Stück")
-        val productWeight = varchar("Artikel_kg_Einheit", 20).default("Stück")
+        val productWeight = float("Artikel_kg_Einheit")
 
         val count = integer("Artikel_Menge")
         val priceFactor = integer("Artikel_Preisfaktor") // = count
-        val totalPrice = float("Summen_preis")
-        val totalPriceNetto = float("Summen_netto")
-        val totalPriceBrutto = float("Summen_brutto")
+        val netPricePerProduct = float("Summen_preis") // duplicate of netProductCost?
+        val totalNetPrice = float("Summen_netto")
+        val totalGrossPrice = float("Summen_brutto")
         val taxProz = float("Summen_ust_proz").default(19f)
+
         /** calculated tax for this content */
         val totalTax = float("Summen_ust_gesamt")
 
         val totalTaxAfterAufrab = float("Summen_ust_nach_Aufrab") // = totalTax
-        val totalPriceNettoAfterAufrab = float("Summen_netto_nach_Aufrab") // = totalPriceNetto
-        val totalPriceBruttoAfterAufrab = float("Summen_brutto_nach_Aufrab") // = totalPriceBrutto
+        val totalNetPriceAfterAufrab = float("Summen_netto_nach_Aufrab") // = totalPriceNetto
+        val totalGrossPriceAfterAufrab = float("Summen_brutto_nach_Aufrab") // = totalPriceBrutto
         val mitAuftragsRabatt = integer("bMitAuftragsrabatt").default(1)
 
         val productId = integer("lArtikelID") // = SheetNr of product
 
         val rabattWarnung = integer("fRabattWarnung").default(1)
         val productShortDesc = varchar("szArtikel_Kurzbezeichnung", 100) // often eq. productName
-        val productCost = float("dftArtikel_Selbstkosten").default(0f) // cost of product for company without profit -- not used?
-        val productCostNetto = float("dftArtikelpreisNetto")
-        val productCostBrutto = float("dftArtikelpreisBrutto")
 
-        val gewinnNetto = float("dftSumme_GewinnNetto_NAR").default(0f) // doesn't seem to be used
+        // cost of product for company without profit -- not used?
+        val productCost = float("dftArtikel_Selbstkosten")
+        val netProductCost = float("dftArtikelpreisNetto")
+        val grossProductCost = float("dftArtikelpreisBrutto")
 
-        val weight = float("dftSummen_Gewicht").default(0f)
+        val gewinnNetto = float("dftSumme_GewinnNetto_NAR") // doesn't seem to be used
+
+        val weight = float("dftSummen_Gewicht")
 
         // tsLieferRueckstand ?
+
+        /** Inserts an order content with `id` that is not yet used. */
+        fun insertUnique(block: OrderContents.(InsertStatement<Number>) -> Unit): InsertStatement<Number> {
+            // Fetch the highest id
+            val orders = selectAll()
+            val highestId = orders.maxOf { it[lNr] }
+
+            // Insert new customer
+            return insert {
+                // for some reason, the id is not auto-incremented
+                it[lNr] = highestId + 1
+                block(it)
+            }
+        }
+
+        /**
+         * @param product the product inner joined with [PriceMatrix]!! ([Products.withPrices])
+         * @param index index of the content in the order, starting at 0
+         */
+        fun insertFor(
+            orderNr: String,
+            index: Int,
+            product: ResultRow,
+            count: Int,
+            note: String = ""
+        ) = insertUnique {
+            it[auftragsNr] = orderNr
+
+            it[lfdNumber] = index + 1
+            it[szPosNr] = index + 1
+            it[posNumber] = index + 2
+
+            it[this.note] = note
+            it[productNr] = product[Products.artikelNr]
+            it[productName] = product[Products.bezeichnung]
+            it[productMatchcode] = product[Products.matchcode]
+            it[productUnit] = product[Products.unit]
+            it[productWeight] = product[Products.gewicht].roundToCurrency()
+
+            it[this.count] = count
+            it[priceFactor] = count
+            val netPrice = product[PriceMatrix.vkPreisNetto]
+            val taxPortion = 0.19f // todo check tax
+            val tax = netPrice * taxPortion
+            val grossPrice = netPrice + tax
+            val totalNetPrice = netPrice * count
+            val totalGrossPrice = (grossPrice * (1f + taxPortion)).roundToCurrency()
+            it[netPricePerProduct] = netPrice
+            it[this.totalNetPrice] = totalNetPrice
+            it[this.totalGrossPrice] = totalGrossPrice
+            it[taxProz] = taxPortion
+            it[totalTax] = tax
+
+            it[totalTaxAfterAufrab] = tax
+            it[totalNetPriceAfterAufrab] = totalNetPrice
+            it[totalGrossPriceAfterAufrab] = totalGrossPrice
+
+            it[productId] = product[Products.id].value
+            it[productShortDesc] = product[Products.bezeichnung]
+
+            it[netProductCost] = netPrice
+            it[grossProductCost] = grossPrice
+
+            it[weight] = product[Products.gewicht] * count
+        }
+
+        fun insertFor(orderNr: String, vararg products: OrderContentData) {
+            products.forEachIndexed { index, data ->
+                insertFor(orderNr, index, data.product, data.count, data.note)
+            }
+        }
     }
+
+    data class OrderContentData(
+        val product: ResultRow,
+        val count: Int,
+        val note: String = ""
+    )
 }

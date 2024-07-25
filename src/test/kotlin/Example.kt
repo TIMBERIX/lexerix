@@ -10,7 +10,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import toys.timberix.lexerix.api.inventory_management.*
 import kotlin.time.Duration.Companion.seconds
 
-fun listAllCustomers() {
+private fun listAllCustomers() {
     transaction {
         println("Customers:")
         Customers.selectAll().forEach {
@@ -20,7 +20,7 @@ fun listAllCustomers() {
     }
 }
 
-fun insertExampleCustomer() = transaction {
+private fun insertExampleCustomer() = transaction {
     Customers.insertUnique {
         it[matchcode] = "my-lexerix-customer"
         it[anschriftFirma] = "Test"
@@ -29,11 +29,11 @@ fun insertExampleCustomer() = transaction {
     }
 }
 
-fun deleteCustomer(mId: EntityID<Int>) = transaction {
+private fun deleteCustomer(mId: EntityID<Int>) = transaction {
     Customers.deleteWhere { id eq mId }
 }
 
-fun customQuery() {
+private fun customQuery() {
     // Get company type/description of first company from BH_FIRMA table
     val companyType = transaction {
         exec("SELECT TOP 1 * FROM F2.F1.BH_FIRMA") {
@@ -44,7 +44,7 @@ fun customQuery() {
     println("First accounting company description: '$companyType'")
 }
 
-fun listAllProducts() {
+private fun listAllProducts() {
     transaction {
         Products.selectAll().forEach {
             println("- Product: ${it[Products.bezeichnung]}")
@@ -52,7 +52,7 @@ fun listAllProducts() {
     }
 }
 
-fun listProductsWithPrices() {
+private fun listProductsWithPrices() {
     transaction {
         Products.withPrices().forEach {
             println("Found product ${it[Products.bezeichnung]} with price ${it[PriceMatrix.vkPreisNetto]}")
@@ -60,7 +60,7 @@ fun listProductsWithPrices() {
     }
 }
 
-fun listOrdersWithProducts() {
+private fun listOrdersWithProducts() {
     transaction {
         Orders.selectWithProducts().forEach { (id, contents) ->
             println("Order $id:")

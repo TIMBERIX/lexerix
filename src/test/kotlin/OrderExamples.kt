@@ -8,7 +8,7 @@ import toys.timberix.lexerix.api.asCurrency
 import toys.timberix.lexerix.api.inventory_management.*
 import kotlin.time.Duration.Companion.hours
 
-fun main() {
+private fun main() {
     exampleSetup()
 
     // get customer
@@ -66,7 +66,7 @@ private fun insertEmptyOrder(customer: ResultRow) {
     println("Inserted empty order with id $id")
 }
 
-fun insertOrderWithProducts(customer: ResultRow) {
+private fun insertOrderWithProducts(customer: ResultRow) {
     // Insert order with products: 2x product1 and 1x product2
     val (product1, product2) = transaction {
         Products.withPrices().andWhere {

@@ -7,27 +7,21 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import toys.timberix.lexerix.api.inventory_management.InventoryManagement
-import toys.timberix.lexerix.api.inventory_management.InventoryManagement.Customers.anschriftFirma
-import toys.timberix.lexerix.api.inventory_management.InventoryManagement.Customers.anschriftName
-import toys.timberix.lexerix.api.inventory_management.InventoryManagement.Customers.anschriftVorname
-import toys.timberix.lexerix.api.inventory_management.InventoryManagement.Products.bezeichnung
-import toys.timberix.lexerix.api.inventory_management.InventoryManagement.Products.created
-import toys.timberix.lexerix.api.inventory_management.InventoryManagement.Products.createdUser
-import toys.timberix.lexerix.api.inventory_management.InventoryManagement.Products.lastUpdated
+import toys.timberix.lexerix.api.inventory_management.*
 import kotlin.time.Duration.Companion.seconds
 
 fun listAllCustomers() {
     transaction {
         println("Customers:")
-        InventoryManagement.Customers.selectAll().forEach {
-            println(" - '${it[anschriftVorname]} ${it[anschriftName]}' from company '${it[anschriftFirma]}'")
+        Customers.selectAll().forEach {
+            println(" - '${it[Customers.anschriftVorname]} ${it[Customers.anschriftName]}' " +
+                    "from company '${it[Customers.anschriftFirma]}'")
         }
     }
 }
 
 fun insertExampleCustomer() = transaction {
-    InventoryManagement.Customers.insertUnique {
+    Customers.insertUnique {
         it[matchcode] = "my-lexerix-customer"
         it[anschriftFirma] = "Test"
         it[anschriftName] = "Doe"
@@ -36,7 +30,7 @@ fun insertExampleCustomer() = transaction {
 }
 
 fun deleteCustomer(mId: EntityID<Int>) = transaction {
-    InventoryManagement.Customers.deleteWhere { id eq mId }
+    Customers.deleteWhere { id eq mId }
 }
 
 fun customQuery() {
@@ -52,27 +46,26 @@ fun customQuery() {
 
 fun listAllProducts() {
     transaction {
-        InventoryManagement.Products.selectAll().forEach {
-            println("Product: ${it[bezeichnung]} - created by ${it[createdUser]} at ${it[created]}")
-            println("   -> Last modified at ${it[lastUpdated]} (GMT)")
+        Products.selectAll().forEach {
+            println("- Product: ${it[Products.bezeichnung]}")
         }
     }
 }
 
 fun listProductsWithPrices() {
     transaction {
-        InventoryManagement.Products.withPrices().forEach {
-            println("Found product ${it[bezeichnung]} with price ${it[InventoryManagement.PriceMatrix.vkPreisNetto]}")
+        Products.withPrices().forEach {
+            println("Found product ${it[Products.bezeichnung]} with price ${it[PriceMatrix.vkPreisNetto]}")
         }
     }
 }
 
 fun listOrdersWithProducts() {
     transaction {
-        InventoryManagement.Orders.selectWithProducts().forEach { (id, contents) ->
+        Orders.selectWithProducts().forEach { (id, contents) ->
             println("Order $id:")
             contents.forEach { product ->
-                println(" - ${product[InventoryManagement.OrderContents.count]} x ${product[bezeichnung]}")
+                println(" - ${product[OrderContents.count]} x ${product[Products.bezeichnung]}")
             }
         }
     }

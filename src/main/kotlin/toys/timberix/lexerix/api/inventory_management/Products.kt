@@ -2,11 +2,11 @@
 
 package toys.timberix.lexerix.api.inventory_management
 
-import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.selectAll
+import toys.timberix.lexerix.api.utils.DatedIntIdTable
 
-object Products : IntIdTable("FK_Artikel", "SheetNr") {
+object Products : DatedIntIdTable("FK_Artikel", "SheetNr") {
         val artikelNr = integer("ArtikelNr")
         val matchcode = varchar("Matchcode", 35)
         val bezeichnung = varchar("Bezeichnung", 255)

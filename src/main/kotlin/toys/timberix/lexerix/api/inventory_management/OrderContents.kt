@@ -3,17 +3,17 @@
 package toys.timberix.lexerix.api.inventory_management
 
 import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.statements.InsertStatement
-import toys.timberix.lexerix.api.asCurrency
-import toys.timberix.lexerix.api.asWeight
+import toys.timberix.lexerix.api.utils.DatedTable
+import toys.timberix.lexerix.api.utils.asCurrency
+import toys.timberix.lexerix.api.utils.asWeight
 import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
 
-object OrderContents : Table("FK_AuftragPos") {
+object OrderContents : DatedTable("FK_AuftragPos") {
         val lNr = integer("lNr")
         val auftragsNr = reference("AuftragsNr", Orders.auftragsNr)
         val auftragsKennung = integer("AuftragsKennung").default(1) // ?

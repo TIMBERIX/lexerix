@@ -1,4 +1,4 @@
-package toys.timberix.lexerix.api
+package toys.timberix.lexerix.api.utils
 
 import java.math.BigDecimal
 import java.math.RoundingMode

@@ -4,7 +4,7 @@ import org.jetbrains.exposed.sql.andWhere
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import toys.timberix.lexerix.api.CURRENCY_EUR
-import toys.timberix.lexerix.api.asCurrency
+import toys.timberix.lexerix.api.utils.asCurrency
 import toys.timberix.lexerix.api.inventory_management.*
 import kotlin.time.Duration.Companion.hours
 

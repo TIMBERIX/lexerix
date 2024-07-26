@@ -3,12 +3,12 @@
 package toys.timberix.lexerix.api.inventory_management
 
 import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.statements.InsertStatement
+import toys.timberix.lexerix.api.utils.DatedIntIdTable
 
-object Customers : IntIdTable("FK_Kunde", "SheetNr") {
+object Customers : DatedIntIdTable("FK_Kunde", "SheetNr") {
         /**
          * Unique customer number. Must be unique.
          */

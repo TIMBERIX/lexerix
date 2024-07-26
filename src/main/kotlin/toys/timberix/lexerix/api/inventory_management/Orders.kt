@@ -4,14 +4,14 @@ package toys.timberix.lexerix.api.inventory_management
 
 import kotlinx.datetime.Clock
 import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.statements.InsertStatement
+import toys.timberix.lexerix.api.utils.DatedIntIdTable
 
-object Orders : IntIdTable("FK_Auftrag", "SheetNr") {
+object Orders : DatedIntIdTable("FK_Auftrag", "SheetNr") {
     val auftragsNr = varchar("AuftragsNr", 20)
     val auftragsKennung = integer("AuftragsKennung").default(1) // ?
 

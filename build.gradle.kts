@@ -24,7 +24,9 @@ configurations.getByName("compileOnly").extendsFrom(shade)
 dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test")
 
-    implementation("org.slf4j:slf4j-nop:2.0.13")
+    implementation("org.slf4j:slf4j-api:2.0.13")
+    implementation("ch.qos.logback:logback-classic:1.5.6")
+
     api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
     api("org.jetbrains.exposed:exposed-core:$exposedVersion")

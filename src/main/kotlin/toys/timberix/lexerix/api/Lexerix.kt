@@ -9,17 +9,21 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.vendors.SQLServerDialect
+import org.slf4j.LoggerFactory
 import java.sql.SQLException
+
+internal val logger = LoggerFactory.getLogger("LEXERIX")
 
 /**
  * This class is the main entry point for the Lexerix API.
  */
 class Lexerix {
     private var _db: Database? = null
-    private val db: Database get() {
-        if (_db == null) throw RuntimeException("Database not connected")
-        return _db!!
-    }
+    private val db: Database
+        get() {
+            if (_db == null) throw RuntimeException("Database not connected")
+            return _db!!
+        }
 
     /**
      * Connect to the Lexware sybase database and start the company database if necessary.
@@ -56,20 +60,19 @@ class Lexerix {
     )
 
     private fun startCompanyDatabase(name: String, databaseFolder: String) {
-        print("Starting company database '$name'... ")
+        logger.debug("Starting company database '$name'...")
         transaction {
             try {
                 exec("START DATABASE '$databaseFolder\\$name\\LxCompany.db' AS $name")
             } catch (e: ExposedSQLException) {
-                println("✗")
                 if (e.sqlState == "08W27") {
                     // "Database name not unique"
-                    println("Company database '$name' already running. This should not happen!")
+                    logger.error("Company database '$name' already running. This should not happen!")
                 }
                 throw e
             }
         }
-        println("✓")
+        logger.debug("Started company database '$name'")
     }
 
     /**
@@ -103,20 +106,19 @@ class Lexerix {
         _db?.let(TransactionManager::closeAndUnregister)
         _db = Database.connect(dataSource("?SERVICENAME=$company"))
         try {
-            print("Testing connection to company database... ")
+            logger.debug("Testing connection to company database...")
             transaction {
                 // get all registered companies for BUCHHALTUNG
                 exec("SELECT * FROM F2.F1.BH_FIRMA")
             }
-            println("✓")
-        }
-        catch (e: SQLException) {
-            println("✗")
+            logger.debug("Connection to company database functional")
+        } catch (e: SQLException) {
+            logger.debug("Connection failed with sql state ${e.sqlState}")
 
             val sqlState = e.sqlState
             if (sqlState == "JZ00L" || sqlState == "08004") {
                 if (!maybeStart) {
-                    println("Company database '$company' not found after starting!")
+                    logger.error("Company database '$company' not found after starting!")
                     throw e
                 }
 
@@ -129,10 +131,11 @@ class Lexerix {
                 startCompanyDatabase(company, databaseFolder)
 
                 connectToCompany(company, ip, port, user, password, databaseFolder, maybeStart = false)
-            }
-            else {
-                println(e.sqlState)
-                e.nextException?.printStackTrace()
+            } else {
+                logger.error("Unknown error while connecting to company database: ${e.message} (sql state: ${e.sqlState})")
+                e.nextException?.let { nextE ->
+                    logger.error("Underlying/next exception:", nextE)
+                }
                 throw e
             }
         }

@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "toys.timberix"
-version = "0.1.2"
+version = "0.1.3"
 
 repositories {
     mavenCentral()
@@ -24,8 +24,7 @@ configurations.getByName("compileOnly").extendsFrom(shade)
 dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test")
 
-    implementation("org.slf4j:slf4j-api:2.0.13")
-    implementation("ch.qos.logback:logback-classic:1.5.6")
+    implementation("org.slf4j:slf4j-nop:2.0.13")
 
     api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 

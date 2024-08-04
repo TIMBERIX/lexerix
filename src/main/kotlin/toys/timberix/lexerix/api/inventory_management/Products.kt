@@ -22,6 +22,8 @@ object Products : DatedIntIdTable("FK_Artikel", "SheetNr") {
         /** Should this product be visible in the webshop? */
         val webShop = bool("bStatus_WebShop")
 
+        val userDefined1 = varchar("szUserdefined1", 50)
+
         fun withPrices(priceGroup: Int = 1, quantity: Int = 1) = (this innerJoin PriceMatrix).selectAll().where {
             (PriceMatrix.preisGrpNr eq priceGroup) and (PriceMatrix.mengeNr eq quantity)
         }

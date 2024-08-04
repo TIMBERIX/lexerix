@@ -93,6 +93,8 @@ object Orders : DatedIntIdTable("FK_Auftrag", "SheetNr") {
 
     val weight = float("dftSummen_Gewicht").default(0f)
 
+    val userDefined1 = varchar("szUserdefined1", 50)
+
     fun selectWithProducts() = ((this innerJoin OrderContents) innerJoin Products)
         .selectAll()
         .groupBy {

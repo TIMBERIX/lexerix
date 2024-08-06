@@ -39,7 +39,7 @@ object Customers : DatedIntIdTable("FK_Kunde", "SheetNr") {
         fun insertUnique(block: Customers.(InsertStatement<EntityID<Int>>) -> Unit): EntityID<Int> {
             // Fetch the highest id
             val customers = selectAll()
-            val highestId = customers.maxOf { maxOf(it[id].value, it[kundenNr].toIntOrNull() ?: 0) }
+            val highestId = customers.maxOfOrNull { maxOf(it[id].value, it[kundenNr].toIntOrNull() ?: 0) } ?: 0
 
             // Insert new customer
             return insertAndGetId {

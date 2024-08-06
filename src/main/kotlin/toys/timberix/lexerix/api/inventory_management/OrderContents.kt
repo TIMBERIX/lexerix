@@ -71,7 +71,7 @@ object OrderContents : DatedTable("FK_AuftragPos") {
         fun insertUnique(block: OrderContents.(InsertStatement<Number>) -> Unit): InsertStatement<Number> {
             // Fetch the highest id
             val orders = selectAll()
-            val highestId = orders.maxOf { it[lNr] }
+            val highestId = orders.maxOfOrNull { it[lNr] } ?: 0
 
             // Insert new customer
             return insert {

@@ -90,7 +90,8 @@ object OrderContents : DatedTable("FK_AuftragPos") {
             index: Int,
             product: ResultRow,
             count: Int,
-            note: String = ""
+            note: String = "",
+            netPrice: BigDecimal = product[PriceMatrix.vkPreisNetto].asCurrency()
         ) = insertUnique {
             it[auftragsNr] = orderNr
 
@@ -107,7 +108,6 @@ object OrderContents : DatedTable("FK_AuftragPos") {
 
             it[this.count] = count
             it[priceFactor] = count
-            val netPrice = product[PriceMatrix.vkPreisNetto].asCurrency()
             val taxPortion = BigDecimal("0.19") // todo check tax
             val tax = netPrice * taxPortion
             val grossPrice = netPrice + tax
@@ -135,7 +135,7 @@ object OrderContents : DatedTable("FK_AuftragPos") {
 
         fun insertFor(orderNr: String, vararg products: OrderContentData) {
             products.forEachIndexed { index, data ->
-                insertFor(orderNr, index, data.product, data.count, data.note)
+                insertFor(orderNr, index, data.product, data.count, data.note, data.netPricePerPiece())
             }
         }
     }
@@ -146,5 +146,6 @@ object OrderContents : DatedTable("FK_AuftragPos") {
         val note: String = "",
         val netPriceOverride: BigDecimal? = null
     ) {
-        fun netPrice() = netPriceOverride ?: (product[PriceMatrix.vkPreisNetto].asCurrency() * BigDecimal(count))
+        fun netPrice() = netPricePerPiece() * BigDecimal(count)
+        fun netPricePerPiece() = netPriceOverride ?: product[PriceMatrix.vkPreisNetto].asCurrency()
     }

@@ -143,7 +143,8 @@ object OrderContents : DatedTable("FK_AuftragPos") {
     data class OrderContentData(
         val product: ResultRow,
         val count: Int,
-        val note: String = ""
+        val note: String = "",
+        val netPriceOverride: BigDecimal? = null
     ) {
-        fun netPrice() = product[PriceMatrix.vkPreisNetto].asCurrency() * BigDecimal(count)
+        fun netPrice() = netPriceOverride ?: (product[PriceMatrix.vkPreisNetto].asCurrency() * BigDecimal(count))
     }

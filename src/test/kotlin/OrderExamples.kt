@@ -69,7 +69,7 @@ private fun insertEmptyOrder(customer: ResultRow) {
 private fun insertOrderWithProducts(customer: ResultRow) {
     // Insert order with products: 2x product1 and 1x product2
     val (product1, product2) = transaction {
-        Products.withPrices().andWhere {
+        Products.withPricesAndStocks().andWhere {
             Products.webShop eq true
         }.take(2)
     }

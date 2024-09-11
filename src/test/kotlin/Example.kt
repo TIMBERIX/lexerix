@@ -4,6 +4,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.andWhere
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -54,8 +55,9 @@ private fun listAllProducts() {
 
 private fun listProductsWithPrices() {
     transaction {
-        Products.withPrices().forEach {
-            println("Found product ${it[Products.bezeichnung]} with price ${it[PriceMatrix.vkPreisNetto]}")
+        Products.withPricesAndStocks().andWhere { Products.webShop eq true }.forEach {
+            println("Found product ${it[Products.bezeichnung]} with price ${it[PriceMatrix.vkPreisNetto]} " +
+                    "and stock ${it[ProductStocks.stockAmount]}")
         }
     }
 }

@@ -15,7 +15,7 @@ object Products : DatedIntIdTable("FK_Artikel", "SheetNr") {
         val gewicht = float("Gewicht")
         val unit = varchar("Einheit", 20).default("Stück")
 
-        /** no price? --- use [withPrices] */
+        /** no price? --- use [withPricesAndStocks] */
         val preis = float("Vk_preis")
         val bestand = float("Menge_bestand")
         val minBestand = float("Menge_minbestand")
@@ -27,5 +27,9 @@ object Products : DatedIntIdTable("FK_Artikel", "SheetNr") {
 
         fun withPrices(priceGroup: Int = 1, quantity: Int = 1) = (this innerJoin PriceMatrix).selectAll().where {
             (PriceMatrix.preisGrpNr eq priceGroup) and (PriceMatrix.mengeNr eq quantity)
+        }
+
+        fun withPricesAndStocks(priceGroup: Int = 1, quantity: Int = 1, storeId: Int = 1) = ((this innerJoin PriceMatrix) innerJoin ProductStocks).selectAll().where {
+            (PriceMatrix.preisGrpNr eq priceGroup) and (PriceMatrix.mengeNr eq quantity) and (ProductStocks.store eq storeId)
         }
     }

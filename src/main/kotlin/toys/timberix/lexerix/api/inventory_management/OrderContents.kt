@@ -82,7 +82,7 @@ object OrderContents : DatedTable("FK_AuftragPos") {
         }
 
         /**
-         * @param product the product inner joined with [PriceMatrix]!! ([Products.withPrices])
+         * @param product the product inner joined with [PriceMatrix]!! ([Products.withPricesAndStocks])
          * @param index index of the content in the order, starting at 0
          */
         fun insertFor(

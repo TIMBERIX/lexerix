@@ -125,7 +125,6 @@ object OrderContents : DatedTable("FK_AuftragPos") {
             it[totalGrossPriceAfterAufrab] = totalGrossPrice.toFloat()
 
             it[productId] = product[Products.id].value
-            it[productShortDesc] = product[Products.bezeichnung]
 
             it[netProductCost] = netPrice.toFloat()
             it[grossProductCost] = grossPrice.toFloat()

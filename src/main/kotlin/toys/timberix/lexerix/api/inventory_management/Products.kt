@@ -7,7 +7,7 @@ import org.jetbrains.exposed.sql.selectAll
 import toys.timberix.lexerix.api.utils.DatedIntIdTable
 
 object Products : DatedIntIdTable("FK_Artikel", "SheetNr") {
-        val artikelNr = integer("ArtikelNr")
+        val artikelNr = varchar("ArtikelNr", 255)
         val warengrpNr = integer("WarengrpNr").default(1)
         val matchcode = varchar("Matchcode", 35)
         val bezeichnung = varchar("Bezeichnung", 255)

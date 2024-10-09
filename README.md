@@ -102,3 +102,6 @@ Lexware uses Sybase SQL Anywhere 17. The **company** database is roughly structu
 - `BH`: Buchhaltung // accounting
 - `LG`: Lohn und Gehalt // payroll
 - `FK`: Warenwirtschaft // inventory management
+
+### Connecting via IntelliJ/DataGrip
+![img.png](images/img.png)

@@ -56,7 +56,7 @@ private fun listAllProducts() {
 private fun listProductsWithPrices() {
     transaction {
         Products.withPricesAndStocks().andWhere { Products.webShop eq true }.forEach {
-            println("Found product ${it[Products.bezeichnung]} with price ${it[PriceMatrix.vkPreisNetto]} " +
+            println("Found product ${it[Products.bezeichnung]} with price ${it[PriceMatrix.price]} " +
                     "and stock ${it[ProductStocks.stockAmount]}")
         }
     }

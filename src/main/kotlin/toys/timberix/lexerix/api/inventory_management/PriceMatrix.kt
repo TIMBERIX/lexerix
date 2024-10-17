@@ -9,6 +9,6 @@ object PriceMatrix : DatedTable("FK_Preismatrix") {
         val mengeNr = integer("MengeNr")
         val preisGrpNr = integer("PreisGrpNr")
 
-        /** Net (!) selling price in € */
-        val vkPreisNetto = float("Vk_preis_eur")
+        /** Net or gross (!) selling price in € */
+        val price = float("Vk_preis_eur")
     }

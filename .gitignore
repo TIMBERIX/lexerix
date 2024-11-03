@@ -3,3 +3,4 @@ build
 .gradle
 local.properties
 libs/old
+*.config.json

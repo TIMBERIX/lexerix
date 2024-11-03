@@ -108,8 +108,7 @@ class Lexerix {
         try {
             logger.fine("Testing connection to company database...")
             transaction {
-                // get all registered companies for BUCHHALTUNG
-                exec("SELECT * FROM F2.F1.BH_FIRMA")
+                exec("SELECT 1")
             }
             logger.fine("Connection to company database functional")
         } catch (e: SQLException) {

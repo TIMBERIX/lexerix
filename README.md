@@ -14,15 +14,31 @@ which is licensed under the [jConnect License Agreement](LICENSE_jconnect).
 
 ## Prerequisites
 
-### Obtaining the credentials
+### Obtaining the initial credentials for the U0 account
 
-The password for the privileged user can be found in the `LexGlob.log` file.
+The *initial* password for the privileged U0 user can be found in the `LexGlob.log` file.
 Example path: `C:\ProgramData\Lexware\professional\Datenbank\F0\LexGlob.log`
 
 Find the file and search for `Supervisor`; the 16-digit clear-text password should be right
 next to it (example: `abc123def456ghi7`).
 
 > ⚠️ The corresponding username is `U0`, **not** `Supervisor`!
+
+### Creating new database users (recommended!)
+
+1. Open SQL Anywhere
+2. (Maybe) Un-set the Supervisor password to "" (empty string) in Lexware (this resets the DB
+password to the initial one)
+3. Connect to the database using U0 // [initial password in LexGlob.log]
+4. Create an admin user in both `LXOFFICE` and `FX` (your company database)
+5. Re-set the Supervisor password to a secure value in Lexware
+6. Check that STEP 3 does not work anymore (U0 password is now changed)
+7. Connect to the database using the new admin user
+8. Create a new un-privileged user for your application in both `LXOFFICE` and `FX` (your company database)
+   1. User in `LXOFFICE` does not need any roles/permissions
+   2. User in `FX`: Roles => "F1" User-extended role, Table Privileges => e.g. "FK_Artikel" SELECT, ...
+
+For additional information see [this guide](https://armann-systems.com/wiki/lexware-datenbankzugriff/).
 
 ### Adding the library to your project
 
@@ -50,7 +66,7 @@ see the [Maven Central Page](https://central.sonatype.com/artifact/toys.timberix
 val lexerix = Lexerix()
 // Replace values accordingly
 // This will start the company database if it is not already running
-lexerix.connect("F2", "localhost", "U0", "abc123def456ghi7")
+lexerix.connect("F2", "localhost", "YOUR_DB_USER", "YOUR_PASSWORD")
 ```    
 
 ### Using the API

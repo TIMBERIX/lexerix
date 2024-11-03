@@ -26,7 +26,7 @@ next to it (example: `abc123def456ghi7`).
 
 ### Creating new database users (recommended!)
 
-1. Open SQL Anywhere
+1. Open SQL Central (see guide below)
 2. (Maybe) Un-set the Supervisor password to "" (empty string) in Lexware (this resets the DB
 password to the initial one)
 3. Connect to the database using U0 // [initial password in LexGlob.log]

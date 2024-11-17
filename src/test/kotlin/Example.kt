@@ -6,6 +6,7 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.andWhere
 import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import toys.timberix.lexerix.api.inventory_management.*
@@ -76,7 +77,17 @@ private fun listOrdersWithProducts() {
 private fun main(): Unit = runBlocking {
     exampleSetup()
 
-    listOrdersWithProducts()
+    transaction {
+        ProductStockLog.insert {
+            it[id] = Int.MAX_VALUE - 1
+            it[artikelNr] = "ARTIKEL_NR"
+            it[type] = 3
+            it[store] = 1
+            it[description] = "Test"
+        }
+    }
+
+//    listOrdersWithProducts()
 
     listAllProducts()
     listProductsWithPrices()

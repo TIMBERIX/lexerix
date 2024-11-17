@@ -38,6 +38,11 @@ password to the initial one)
    1. User in `LXOFFICE` does not need any roles/permissions
    2. User in `FX`: Roles => "F1" User-extended role, Table Privileges => e.g. "FK_Artikel" SELECT, ...
 
+It is also recommended to limit the maximum amount of DB connections per user to prevent
+database server out-of-memory errors when lexerix goes crazy:
+
+![limit-connections-per-user](https://github.com/user-attachments/assets/031bf2ad-b6c0-4107-86f5-3511fbeb9c73)
+
 For additional information see [this guide](https://armann-systems.com/wiki/lexware-datenbankzugriff/).
 
 ### Adding the library to your project

@@ -38,6 +38,8 @@ object Products : DatedIntIdTable("FK_Artikel", "SheetNr") {
 
     val userDefined1 = varchar("szUserdefined1", 50)
 
+    fun byProductNr(productNr: String) = selectAll().where { Products.productNr eq productNr }
+
     fun withPrices(priceGroup: Int = 1, quantity: Int = 1) = (this innerJoin PriceMatrix).selectAll().where {
         (PriceMatrix.preisGrpNr eq priceGroup) and (PriceMatrix.mengeNr eq quantity)
     }

@@ -5,10 +5,14 @@ package toys.timberix.lexerix.api.inventory_management
 import toys.timberix.lexerix.api.utils.DatedTable
 
 object PriceMatrix : DatedTable("FK_Preismatrix") {
-        val artikelNr = reference("ArtikelNr", Products.artikelNr)
+        val productNr = reference("ArtikelNr", Products.productNr)
         val mengeNr = integer("MengeNr")
         val preisGrpNr = integer("PreisGrpNr")
 
-        /** Net (!) selling price in € */
-        val vkPreisNetto = float("Vk_preis_eur")
+        /**
+         * Selling price in €.
+         *
+         * Whether this is net or gross price depends on the user settings in Lexware.
+         */
+        val sellingPrice = float("Vk_preis_eur")
     }

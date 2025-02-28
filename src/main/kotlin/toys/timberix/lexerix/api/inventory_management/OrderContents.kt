@@ -25,7 +25,7 @@ object OrderContents : DatedTable("FK_AuftragPos") {
 
         /** additional text per content, e.g. "I want this (the apples) to be green" */
         val note = varchar("PosText", 5000).default("")
-        val productNr = reference("ArtikelNr", Products.artikelNr)
+        val productNr = reference("ArtikelNr", Products.productNr)
 
         // "ErloesKonto" doesn't seem to matter
         val warengrpNr = integer("WarengrpNr").default(1)
@@ -91,7 +91,7 @@ object OrderContents : DatedTable("FK_AuftragPos") {
             product: ResultRow,
             count: Int,
             note: String = "",
-            netPrice: BigDecimal = product[PriceMatrix.vkPreisNetto].asCurrency()
+            netPrice: BigDecimal = product[PriceMatrix.sellingPrice].asCurrency()
         ) = insertUnique {
             it[auftragsNr] = orderNr
 
@@ -100,11 +100,11 @@ object OrderContents : DatedTable("FK_AuftragPos") {
             it[posNumber] = index + 2
 
             it[this.note] = note
-            it[productNr] = product[Products.artikelNr]
+            it[productNr] = product[Products.productNr]
             it[productName] = product[Products.bezeichnung]
             it[productMatchcode] = product[Products.matchcode]
             it[productUnit] = product[Products.unit]
-            it[productWeight] = BigDecimal(product[Products.gewicht].toString(), MathContext(3, RoundingMode.HALF_UP)).toFloat()
+            it[productWeight] = BigDecimal(product[Products.weight].toString(), MathContext(3, RoundingMode.HALF_UP)).toFloat()
 
             it[this.count] = count
             it[priceFactor] = count
@@ -129,7 +129,7 @@ object OrderContents : DatedTable("FK_AuftragPos") {
             it[netProductCost] = netPrice.toFloat()
             it[grossProductCost] = grossPrice.toFloat()
 
-            it[weight] = (product[Products.gewicht].asWeight() * count.toBigDecimal()).toFloat()
+            it[weight] = (product[Products.weight].asWeight() * count.toBigDecimal()).toFloat()
         }
 
         fun insertFor(orderNr: String, vararg products: OrderContentData) {
@@ -146,5 +146,5 @@ object OrderContents : DatedTable("FK_AuftragPos") {
         val netPriceOverride: BigDecimal? = null
     ) {
         fun netPrice() = netPricePerPiece() * BigDecimal(count)
-        fun netPricePerPiece() = netPriceOverride ?: product[PriceMatrix.vkPreisNetto].asCurrency()
+        fun netPricePerPiece() = netPriceOverride ?: product[PriceMatrix.sellingPrice].asCurrency()
     }

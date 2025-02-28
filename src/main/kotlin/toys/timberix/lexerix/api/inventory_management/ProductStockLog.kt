@@ -6,7 +6,11 @@ import org.jetbrains.exposed.sql.Table
 
 object ProductStockLog : Table("FK_LagerJournal") {
     val id = integer("lNr")
-    val artikelNr = reference("szArtikelNr", Products.artikelNr)
+
+    /**
+     * The [Products.productNr] of the product that was affected by this stock change.
+     */
+    val productNr = reference("szArtikelNr", Products.productNr)
     val type = integer("lType") // 3 for manual stock change
     val store = reference("lLagerId", Stores.id)
     val description = varchar("szBeschreibung", 100)

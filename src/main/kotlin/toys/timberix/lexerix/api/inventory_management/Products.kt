@@ -6,19 +6,32 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.selectAll
 import toys.timberix.lexerix.api.utils.DatedIntIdTable
 
+/**
+ * Represents a product/article in the database. It has the following properties:
+ *
+ * - [id]: unique identifier (integer!) only used internally by Lexware in the database
+ * - [productNr]: unique identifier for the product (string!), must be unique, but can be changed by the user
+ * - [matchcode]: short "identifier" for the product (string), used as name
+ * - [bezeichnung]: another name (string), sometimes used as a short description of the product
+ * - [beschreibung]: a longer description of the product (string)
+ *
+ * Some tables reference the product by its [id], others by its [productNr] (I don't know why).
+ *
+ * The product may be a product that is actually sold in the webshop ([webShop] = true) or a product that is
+ * a component of another product.
+ *
+ * To fetch the components of a product, see [ProductComponents].
+ */
 object Products : DatedIntIdTable("FK_Artikel", "SheetNr") {
-    val artikelNr = varchar("ArtikelNr", 255)
+    val productNr = varchar("ArtikelNr", 255)
     val warengrpNr = integer("WarengrpNr").default(1)
     val matchcode = varchar("Matchcode", 35)
     val bezeichnung = varchar("Bezeichnung", 255)
     val beschreibung = varchar("Beschreibung", 255).default("Product created by LEXERIX")
-    val gewicht = float("Gewicht")
+    val weight = float("Gewicht")
     val unit = varchar("Einheit", 20).default("Stück")
 
-    /** no price? --- use [withPricesAndStocks] */
-    val preis = float("Vk_preis")
-    val bestand = float("Menge_bestand")
-    val minBestand = float("Menge_minbestand")
+    // Vk_preis, Menge_bestand, Menge_minbestand are unused in the database
 
     /** Should this product be visible in the webshop? */
     val webShop = bool("bStatus_WebShop")

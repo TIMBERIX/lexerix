@@ -57,7 +57,7 @@ private fun listAllProducts() {
 private fun listProductsWithPrices() {
     transaction {
         Products.withPricesAndStocks().andWhere { Products.webShop eq true }.forEach {
-            println("Found product ${it[Products.bezeichnung]} with price ${it[PriceMatrix.vkPreisNetto]} " +
+            println("Found product ${it[Products.bezeichnung]} with price ${it[PriceMatrix.sellingPrice]} " +
                     "and stock ${it[ProductStocks.stockAmount]}")
         }
     }
@@ -78,9 +78,15 @@ private fun main(): Unit = runBlocking {
     exampleSetup()
 
     transaction {
+        Products.withStocks().forEach {
+            println(it[Products.matchcode])
+        }
+    }
+
+    transaction {
         ProductStockLog.insert {
             it[id] = Int.MAX_VALUE - 1
-            it[artikelNr] = "ARTIKEL_NR"
+            it[productNr] = "ARTIKEL_NR"
             it[type] = 3
             it[store] = 1
             it[description] = "Test"

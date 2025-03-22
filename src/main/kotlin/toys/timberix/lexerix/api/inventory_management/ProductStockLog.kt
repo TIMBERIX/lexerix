@@ -3,6 +3,9 @@
 package toys.timberix.lexerix.api.inventory_management
 
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.statements.InsertStatement
 
 object ProductStockLog : Table("FK_LagerJournal") {
     val id = integer("lNr")
@@ -17,4 +20,20 @@ object ProductStockLog : Table("FK_LagerJournal") {
     val user = varchar("szUser", 60)
     val difference = integer("dftMenge")
     val stockAfter = integer("dftBestand")
+
+    /** Inserts a product stock log entry with an `id` that is not yet used. */
+    fun insertUnique(block: ProductStockLog.(InsertStatement<Number>) -> Unit): Int {
+        // Fetch the highest id
+        val logs = selectAll()
+        val highestId = logs.maxOfOrNull { it[id] } ?: 0
+
+        // Insert new log entry
+        val newId = highestId + 1
+        insert {
+            it[id] = newId
+            block(it)
+        }
+
+        return newId
+    }
 }
